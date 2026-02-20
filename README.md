@@ -1,90 +1,169 @@
-# Next.js Dashboard — 105841115422
+# Next.js Dashboard — Laporan Penyelesaian Chapter 1 s/d 6
 
-> **Mata Kuliah:** Pemrograman Web Lanjut  
-> **NIM:** 105841115422  
-> **Universitas:** Universitas Muhammadiyah Makassar  
-> **Repository:** [nextjs-dashboard-105841115422](https://github.com/Nur-Hidayat-FTI22E/nextjs-dashboard-105841115422)
+Proyek ini merupakan implementasi aplikasi **financial dashboard** berbasis Next.js, dikembangkan sebagai bagian dari kursus Next.js Foundations yang diadaptasi oleh Laboratorium Informatika FT-UNISMUH (Universitas Muhammadiyah Makassar).
 
----
-
-## 📋 Deskripsi Project
-
-Project ini adalah implementasi **Next.js Dashboard Application** berdasarkan panduan dari [Next.js Learn Course](https://nextjs.org/learn). Dashboard ini menampilkan data keuangan fiktif perusahaan "Acme" yang mencakup halaman overview, invoices, dan customers.
+Dokumen ini menjelaskan secara teknis penyelesaian setiap chapter, mulai dari inisialisasi proyek hingga konfigurasi database.
 
 ---
 
-## 🚀 Cara Menjalankan
+## Daftar Isi
 
-### Prasyarat
-- Node.js versi 18+
-- npm
-
-### Instalasi & Menjalankan
-
-```bash
-# Install dependencies
-npm install
-
-# Jalankan development server
-npm run dev
-```
-
-Buka browser dan akses: **http://localhost:3000**
+1. [Tech Stack](#tech-stack)
+2. [Struktur Proyek](#struktur-proyek)
+3. [Chapter 1 — Inisialisasi Proyek](#chapter-1--inisialisasi-proyek)
+4. [Chapter 2 — CSS Styling](#chapter-2--css-styling)
+5. [Chapter 3 — Optimasi Font dan Image](#chapter-3--optimasi-font-dan-image)
+6. [Chapter 4 — Layouts dan Pages](#chapter-4--layouts-dan-pages)
+7. [Chapter 5 — Navigasi Antar Halaman](#chapter-5--navigasi-antar-halaman)
+8. [Chapter 6 — Setup Database](#chapter-6--setup-database)
+9. [Cara Menjalankan](#cara-menjalankan)
 
 ---
 
-## 📖 Ringkasan Pengerjaan
+## Tech Stack
 
-### ✅ Chapter 1 — Memulai Project
+| Komponen         | Teknologi                          |
+|------------------|------------------------------------|
+| Framework        | Next.js 16.0.10 (App Router)       |
+| Bahasa           | TypeScript                         |
+| Bundler          | Turbopack                          |
+| Package Manager  | pnpm                               |
+| CSS Framework    | Tailwind CSS 3.4.17                |
+| Database         | PostgreSQL 18 (lokal)              |
+| DB Client        | postgres (npm package)             |
+| Validasi         | Zod                                |
+| Autentikasi      | NextAuth.js v5 (beta.25)           |
+| Ikon             | Heroicons (@heroicons/react)       |
 
-Menginisialisasi project Next.js menggunakan starter template dari kursus resmi Next.js. Project menggunakan:
-- **Next.js 15** dengan App Router
-- **TypeScript** untuk type safety
-- **Turbopack** sebagai bundler (via `next dev --turbopack`)
+---
 
-**Struktur folder utama:**
+## Struktur Proyek
+
 ```
-app/
-├── layout.tsx          # Root Layout
-├── page.tsx            # Homepage (/)
-├── dashboard/          # Route /dashboard
-│   ├── layout.tsx      # Dashboard Layout + SideNav
-│   ├── page.tsx        # Halaman utama dashboard
-│   ├── invoices/       # Route /dashboard/invoices
-│   └── customers/      # Route /dashboard/customers
-├── login/              # Route /login
-│   └── page.tsx
-└── ui/                 # Komponen UI
-    ├── fonts.ts
-    ├── global.css
-    ├── home.module.css
-    └── dashboard/
+nextjs-dashboard/
+├── app/
+│   ├── layout.tsx                        # Root layout (font global, CSS)
+│   ├── page.tsx                          # Halaman beranda publik
+│   ├── dashboard/
+│   │   ├── layout.tsx                    # Dashboard layout (SideNav)
+│   │   ├── (overview)/
+│   │   │   ├── page.tsx                  # Halaman utama dashboard
+│   │   │   └── loading.tsx               # Loading skeleton
+│   │   ├── invoices/
+│   │   │   ├── page.tsx                  # Daftar invoice (search + pagination)
+│   │   │   ├── create/page.tsx           # Form buat invoice baru
+│   │   │   └── [id]/edit/page.tsx        # Form edit invoice
+│   │   └── customers/
+│   │       └── page.tsx                  # Halaman customers
+│   ├── lib/
+│   │   ├── data.ts                       # Fungsi query database
+│   │   ├── actions.ts                    # Server Actions (CRUD invoice)
+│   │   ├── definitions.ts               # Type definitions (TypeScript)
+│   │   ├── placeholder-data.ts           # Data placeholder untuk seeding
+│   │   └── utils.ts                      # Utility functions
+│   ├── ui/
+│   │   ├── global.css                    # Global stylesheet (Tailwind)
+│   │   ├── fonts.ts                      # Konfigurasi font (Inter, Lusitana)
+│   │   ├── home.module.css               # CSS Module untuk halaman beranda
+│   │   ├── search.tsx                    # Komponen pencarian
+│   │   ├── skeletons.tsx                 # Komponen loading skeleton
+│   │   ├── dashboard/
+│   │   │   ├── sidenav.tsx               # Side navigation
+│   │   │   ├── nav-links.tsx             # Link navigasi dengan active state
+│   │   │   ├── cards.tsx                 # Kartu statistik
+│   │   │   ├── revenue-chart.tsx         # Grafik pendapatan
+│   │   │   └── latest-invoices.tsx       # Daftar invoice terbaru
+│   │   └── invoices/
+│   │       ├── table.tsx                 # Tabel invoice
+│   │       ├── pagination.tsx            # Komponen pagination
+│   │       ├── buttons.tsx               # Tombol CRUD
+│   │       ├── breadcrumbs.tsx           # Breadcrumb navigasi
+│   │       ├── create-form.tsx           # Form pembuatan invoice
+│   │       ├── edit-form.tsx             # Form pengeditan invoice
+│   │       └── status.tsx                # Badge status invoice
+│   ├── seed/
+│   │   └── route.ts                      # API route untuk seeding database
+│   └── query/
+│       └── route.ts                      # API route untuk test koneksi DB
+├── public/
+│   ├── hero-desktop.png                  # Hero image desktop
+│   ├── hero-mobile.png                   # Hero image mobile
+│   └── customers/                        # Avatar pelanggan
+├── .env                                  # Environment variables (tidak di-commit)
+├── .gitignore
+├── tailwind.config.ts
+├── postcss.config.js
+├── tsconfig.json
+├── next.config.ts
+└── package.json
 ```
 
 ---
 
-### ✅ Chapter 2 — CSS Styling
+## Chapter 1 — Inisialisasi Proyek
 
-Mengimplementasikan tiga pendekatan styling yang didemokan dalam kursus:
+### Tujuan
+Membuat proyek Next.js menggunakan starter template resmi dari Vercel.
 
-#### 1. Global CSS
-File `app/ui/global.css` diimport di root layout (`app/layout.tsx`) sehingga berlaku untuk seluruh aplikasi:
-```tsx
-// app/layout.tsx
-import '@/app/ui/global.css';
+### Langkah yang Dilakukan
+
+1. Instalasi pnpm secara global sebagai package manager:
+   ```bash
+   npm install -g pnpm
+   ```
+
+2. Pembuatan proyek menggunakan starter template:
+   ```bash
+   npx create-next-app@latest nextjs-dashboard \
+     --example "https://github.com/vercel/next-learn/tree/main/dashboard/starter-example" \
+     --use-pnpm
+   ```
+
+3. Instalasi seluruh dependensi:
+   ```bash
+   pnpm i
+   ```
+
+4. Menjalankan development server:
+   ```bash
+   pnpm dev
+   ```
+
+### Hasil
+Development server berjalan pada `http://localhost:3000` dengan halaman beranda awal yang belum memiliki styling.
+
+---
+
+## Chapter 2 — CSS Styling
+
+### Tujuan
+Menerapkan styling pada aplikasi menggunakan tiga pendekatan: Global CSS, Tailwind CSS, dan CSS Modules.
+
+### Implementasi
+
+**1. Global CSS**
+
+File `app/ui/global.css` berisi Tailwind directives yang menjadi dasar seluruh styling aplikasi:
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 ```
 
-#### 2. Tailwind CSS
-Tailwind utility classes digunakan langsung di JSX:
+File ini diimpor pada root layout (`app/layout.tsx`) sehingga berlaku di seluruh halaman.
+
+**2. Tailwind CSS**
+
+Seluruh komponen menggunakan Tailwind utility classes secara langsung pada JSX. Contoh pada halaman beranda:
 ```tsx
 <main className="flex min-h-screen flex-col p-6">
   <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
 ```
 
-#### 3. CSS Modules
-File `app/ui/home.module.css` dibuat untuk demonstrasi scoped styling:
+**3. CSS Modules**
+
+File `app/ui/home.module.css` mendefinisikan class `.shape` yang membentuk segitiga menggunakan CSS border trick:
 ```css
-/* app/ui/home.module.css */
 .shape {
   height: 0;
   width: 0;
@@ -93,42 +172,54 @@ File `app/ui/home.module.css` dibuat untuk demonstrasi scoped styling:
   border-right: 20px solid transparent;
 }
 ```
-Digunakan di `app/page.tsx`:
+
+Class ini diimpor dan digunakan di `app/page.tsx` melalui:
 ```tsx
 import styles from '@/app/ui/home.module.css';
 // ...
 <div className={styles.shape} />
 ```
 
-#### 4. Library clsx
-Library `clsx` digunakan untuk conditional class names (diimplementasikan di Chapter 5).
+**4. Conditional Styling dengan clsx**
+
+Library `clsx` digunakan pada komponen seperti `app/ui/invoices/status.tsx` untuk menerapkan class secara kondisional berdasarkan status invoice (pending/paid).
 
 ---
 
-### ✅ Chapter 3 — Optimizing Fonts and Images
+## Chapter 3 — Optimasi Font dan Image
 
-#### Fonts
-Dua custom Google Font dikonfigurasi di `app/ui/fonts.ts`:
+### Tujuan
+Mengoptimasi performa aplikasi melalui penggunaan `next/font` untuk font dan `next/image` untuk gambar.
 
-```ts
+### Implementasi
+
+**1. Konfigurasi Font (`app/ui/fonts.ts`)**
+
+Dua Google Font dikonfigurasi:
+```typescript
 import { Inter, Lusitana } from 'next/font/google';
 
 export const inter = Inter({ subsets: ['latin'] });
-
 export const lusitana = Lusitana({
   weight: ['400', '700'],
   subsets: ['latin'],
 });
 ```
 
-- **Inter** → diapply ke `<body>` di `app/layout.tsx` dengan class `antialiased`
-- **Lusitana** → diapply ke elemen `<p>` di homepage
+- **Inter** — diterapkan sebagai font utama pada `<body>` melalui root layout dengan class `antialiased` untuk rendering yang halus.
+- **Lusitana** — diterapkan pada elemen heading di halaman beranda dan komponen `AcmeLogo`.
 
-#### Images
-Komponen `<Image>` dari Next.js digunakan untuk optimasi otomatis (lazy loading, WebP conversion, dll):
+**2. Penerapan Font pada Root Layout (`app/layout.tsx`)**
 
 ```tsx
-{/* Desktop - hidden di mobile */}
+<body className={`${inter.className} antialiased`}>{children}</body>
+```
+
+**3. Optimasi Gambar (`app/page.tsx`)**
+
+Komponen `next/image` digunakan untuk hero image dengan konfigurasi responsif:
+
+```tsx
 <Image
   src="/hero-desktop.png"
   width={1000}
@@ -136,8 +227,6 @@ Komponen `<Image>` dari Next.js digunakan untuk optimasi otomatis (lazy loading,
   className="hidden md:block"
   alt="Screenshots of the dashboard project showing desktop version"
 />
-
-{/* Mobile - hidden di desktop */}
 <Image
   src="/hero-mobile.png"
   width={560}
@@ -147,21 +236,36 @@ Komponen `<Image>` dari Next.js digunakan untuk optimasi otomatis (lazy loading,
 />
 ```
 
+Keuntungan yang diperoleh:
+- Pencegahan Cumulative Layout Shift (CLS) melalui deklarasi dimensi eksplisit
+- Lazy loading secara default (gambar hanya dimuat saat memasuki viewport)
+- Penyajian format modern (WebP/AVIF) jika browser mendukung
+- Tampilan responsif menggunakan class `hidden`/`block` pada breakpoint `md`
+
 ---
 
-### ✅ Chapter 4 — Creating Layouts and Pages
+## Chapter 4 — Layouts dan Pages
 
-Memanfaatkan **File-System Routing** Next.js App Router untuk membuat halaman-halaman dashboard:
+### Tujuan
+Membuat sistem routing berbasis file-system dengan nested layouts untuk halaman dashboard.
 
-| Route | File |
-|-------|------|
-| `/` | `app/page.tsx` |
-| `/login` | `app/login/page.tsx` |
-| `/dashboard` | `app/dashboard/page.tsx` |
-| `/dashboard/invoices` | `app/dashboard/invoices/page.tsx` |
-| `/dashboard/customers` | `app/dashboard/customers/page.tsx` |
+### Implementasi
 
-**Dashboard Layout** dibuat di `app/dashboard/layout.tsx` menggunakan komponen `SideNav` yang di-share ke semua halaman `/dashboard/*`:
+**1. Pembuatan Halaman Dashboard**
+
+Tiga halaman dibuat sesuai konvensi file-system routing Next.js:
+
+| Route                     | File                                  |
+|---------------------------|---------------------------------------|
+| `/dashboard`              | `app/dashboard/(overview)/page.tsx`   |
+| `/dashboard/invoices`     | `app/dashboard/invoices/page.tsx`     |
+| `/dashboard/customers`    | `app/dashboard/customers/page.tsx`    |
+
+Route group `(overview)` digunakan untuk mengelompokkan halaman utama dashboard tanpa memengaruhi struktur URL.
+
+**2. Dashboard Layout (`app/dashboard/layout.tsx`)**
+
+Layout bersama yang berisi komponen `SideNav` diterapkan pada seluruh halaman dashboard:
 
 ```tsx
 import SideNav from '@/app/ui/dashboard/sidenav';
@@ -172,22 +276,43 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="w-full flex-none md:w-64">
         <SideNav />
       </div>
-      <div className="flex-grow p-6 md:overflow-y-auto md:p-12">
-        {children}
-      </div>
+      <div className="flex-grow p-6 md:overflow-y-auto md:p-12">{children}</div>
     </div>
   );
 }
 ```
 
+Desain responsif diterapkan: layout kolom pada mobile, layout baris pada desktop dengan sidebar selebar 64 unit (`md:w-64`).
+
+**3. Root Layout (`app/layout.tsx`)**
+
+Root layout berfungsi sebagai wrapper global yang menerapkan font Inter dan global CSS ke seluruh aplikasi. Semua nested layout dan page secara otomatis ter-render di dalam root layout ini.
+
+**4. Partial Rendering**
+
+Dengan arsitektur layout Next.js, navigasi antar halaman hanya me-render ulang konten page, sedangkan komponen layout (termasuk SideNav) tetap persisten tanpa re-render.
+
 ---
 
-### ✅ Chapter 5 — Navigating Between Pages
+## Chapter 5 — Navigasi Antar Halaman
 
-Mengimplementasikan navigasi client-side dengan **active link indicator**:
+### Tujuan
+Menggantikan tag `<a>` dengan komponen `<Link>` untuk client-side navigation, serta menampilkan indikator halaman aktif.
+
+### Implementasi
+
+**1. Komponen Link (`app/ui/dashboard/nav-links.tsx`)**
+
+Tag `<a>` pada navigasi diganti dengan `<Link>` dari `next/link` untuk mendapatkan:
+- Client-side navigation tanpa full page refresh
+- Automatic code-splitting per route segment
+- Prefetching otomatis saat link muncul di viewport
+
+**2. Active Link dengan usePathname**
+
+File `nav-links.tsx` ditandai sebagai Client Component (`'use client'`) untuk menggunakan hook `usePathname()`:
 
 ```tsx
-// app/ui/dashboard/nav-links.tsx
 'use client';
 
 import Link from 'next/link';
@@ -222,76 +347,159 @@ export default function NavLinks() {
 }
 ```
 
-**Konsep yang diimplementasikan:**
-- `'use client'` directive untuk menggunakan React hooks
-- `usePathname()` hook untuk membaca URL aktif saat ini
-- `clsx` untuk conditional styling (link aktif diberi highlight biru)
-- Komponen `<Link>` untuk client-side navigation (tanpa full page reload)
+Library `clsx` digunakan untuk menerapkan class `bg-sky-100 text-blue-600` secara kondisional ketika `pathname` cocok dengan `link.href`, memberikan indikasi visual halaman yang sedang aktif.
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## Chapter 6 — Setup Database
 
-| Teknologi | Versi | Kegunaan |
-|-----------|-------|----------|
-| Next.js | 15 (latest) | Framework utama |
-| React | latest | UI library |
-| TypeScript | 5.7.3 | Type safety |
-| Tailwind CSS | 3.4.17 | Utility-first styling |
-| next/font | built-in | Optimasi Google Fonts |
-| next/image | built-in | Optimasi gambar |
-| clsx | ^2.1.1 | Conditional class names |
-| @heroicons/react | ^2.2.0 | Icon library |
-| next-auth | 5.0.0-beta | Authentication (siap pakai) |
+### Tujuan
+Menyiapkan database PostgreSQL, menghubungkannya dengan aplikasi, melakukan seeding data awal, dan memverifikasi koneksi.
 
----
+### Implementasi
 
-## 📁 Struktur File Lengkap
+**1. Konfigurasi Database**
 
-```
-nextjs-dashboard/
-├── app/
-│   ├── layout.tsx              # Root layout (font Inter + global CSS)
-│   ├── page.tsx                # Homepage dengan hero image & login button
-│   ├── login/
-│   │   └── page.tsx            # Halaman login
-│   ├── dashboard/
-│   │   ├── layout.tsx          # Layout dashboard + SideNav
-│   │   ├── page.tsx            # Dashboard overview
-│   │   ├── invoices/
-│   │   │   └── page.tsx        # Halaman invoices
-│   │   └── customers/
-│   │       └── page.tsx        # Halaman customers
-│   ├── ui/
-│   │   ├── fonts.ts            # Konfigurasi Inter & Lusitana
-│   │   ├── global.css          # Global styles + Tailwind directives
-│   │   ├── home.module.css     # CSS Module (shape demo)
-│   │   ├── acme-logo.tsx       # Logo Acme
-│   │   ├── login-form.tsx      # Komponen form login
-│   │   └── dashboard/
-│   │       ├── nav-links.tsx   # Navigasi dengan active state
-│   │       ├── sidenav.tsx     # Sidebar navigation
-│   │       ├── cards.tsx       # Dashboard cards
-│   │       ├── revenue-chart.tsx
-│   │       └── latest-invoices.tsx
-│   └── lib/
-│       ├── data.ts             # Fungsi query database
-│       ├── definitions.ts      # TypeScript type definitions
-│       ├── placeholder-data.ts # Data placeholder
-│       └── utils.ts            # Utility functions
-├── public/
-│   ├── hero-desktop.png        # Hero image desktop
-│   ├── hero-mobile.png         # Hero image mobile
-│   └── customers/              # Avatar foto customers
-├── package.json
-├── tailwind.config.ts
-└── tsconfig.json
+PostgreSQL 18 diinstal dan dikonfigurasi secara lokal. Database dan user dibuat sebagai berikut:
+
+```sql
+CREATE USER h3llo WITH PASSWORD 'password123';
+CREATE DATABASE nextjs_dashboard OWNER h3llo;
+\c nextjs_dashboard
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
 
+**2. Environment Variables (`.env`)**
+
+File `.env` dibuat dengan connection string ke database lokal:
+
+```
+POSTGRES_URL=postgresql://h3llo:password123@localhost:5432/nextjs_dashboard
+AUTH_SECRET=supersecretauthkey1234567890abcdef
+AUTH_URL=http://localhost:3000/api/auth
+```
+
+File `.env` telah ditambahkan ke `.gitignore` untuk mencegah kebocoran kredensial.
+
+**3. Koneksi Database (`app/lib/data.ts`)**
+
+Koneksi menggunakan library `postgres` tanpa opsi SSL (tidak diperlukan untuk koneksi lokal):
+
+```typescript
+import postgres from 'postgres';
+const sql = postgres(process.env.POSTGRES_URL!);
+```
+
+**4. Database Seeding (`app/seed/route.ts`)**
+
+API route `/seed` menjalankan proses seeding yang mencakup:
+
+| Tabel       | Deskripsi                                               |
+|-------------|---------------------------------------------------------|
+| `users`     | Data pengguna dengan password ter-hash (bcrypt)         |
+| `customers` | Data pelanggan (nama, email, avatar)                    |
+| `invoices`  | Data invoice (amount, status, date, customer reference) |
+| `revenue`   | Data pendapatan bulanan untuk grafik                    |
+
+Setiap tabel dibuat dengan `CREATE TABLE IF NOT EXISTS` dan data diisi menggunakan `ON CONFLICT DO NOTHING` untuk idempotency.
+
+Seeding dieksekusi melalui browser pada `http://localhost:3000/seed` dan menghasilkan respons:
+```json
+{ "message": "Database seeded successfully" }
+```
+
+**5. Verifikasi Koneksi (`app/query/route.ts`)**
+
+API route `/query` diaktifkan (di-uncomment) untuk memverifikasi koneksi database:
+
+```typescript
+import postgres from 'postgres';
+
+const sql = postgres(process.env.POSTGRES_URL!);
+
+async function listInvoices() {
+  const data = await sql`
+    SELECT invoices.amount, customers.name
+    FROM invoices
+    JOIN customers ON invoices.customer_id = customers.id
+    WHERE invoices.amount = 666;
+  `;
+  return data;
+}
+
+export async function GET() {
+  try {
+    return Response.json(await listInvoices());
+  } catch (error) {
+    return Response.json({ error }, { status: 500 });
+  }
+}
+```
+
+Hasil verifikasi pada `http://localhost:3000/query`:
+```json
+[{"amount": 666, "name": "Evil Rabbit"}]
+```
+
+Koneksi database berfungsi dengan benar dan data berhasil di-query.
+
 ---
 
-## 🔗 Referensi
+## Cara Menjalankan
 
-- [Next.js Learn Course](https://nextjs.org/learn)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Repository Panduan](https://github.com/devnolife/nextjs-dashboard)
+### Prasyarat
+
+- Node.js versi 18.18.0 atau lebih baru
+- pnpm (diinstal secara global)
+- PostgreSQL (terinstal dan berjalan)
+
+### Langkah-langkah
+
+1. Clone repository dan masuk ke direktori proyek:
+   ```bash
+   cd nextjs-dashboard
+   ```
+
+2. Instal dependensi:
+   ```bash
+   pnpm install
+   ```
+
+3. Salin file environment dan sesuaikan kredensial database:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Pastikan PostgreSQL berjalan, lalu buat database:
+   ```sql
+   CREATE DATABASE nextjs_dashboard;
+   ```
+
+5. Jalankan development server:
+   ```bash
+   pnpm dev
+   ```
+
+6. Lakukan seeding database dengan mengakses:
+   ```
+   http://localhost:3000/seed
+   ```
+
+7. Verifikasi koneksi database:
+   ```
+   http://localhost:3000/query
+   ```
+
+8. Akses aplikasi:
+   - Halaman beranda: `http://localhost:3000`
+   - Dashboard: `http://localhost:3000/dashboard`
+   - Invoice: `http://localhost:3000/dashboard/invoices`
+   - Customers: `http://localhost:3000/dashboard/customers`
+
+---
+
+## Referensi
+
+- [Next.js Official Learn Course](https://nextjs.org/learn/dashboard-app)
+- Materi asli oleh Next.js Team (Vercel)
+- Diadaptasi oleh Laboratorium Informatika FT-UNISMUH
